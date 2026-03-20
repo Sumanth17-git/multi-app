@@ -24,7 +24,7 @@ profiles:
       repository: platform
       tag: core
     nodePort: 31000
-    replicas: 2
+    replicas: 1
     ingress:
       host: core.platform.example.com
     resources:
@@ -77,7 +77,7 @@ profiles:
       repository: platform
       tag: mobile
     nodePort: 31002
-    replicas: 2
+    replicas: 1
     ingress:
       host: mobile.platform.example.com
     resources:
