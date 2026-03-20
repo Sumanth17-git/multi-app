@@ -8,9 +8,9 @@ set +e
 
 NODE_IP="52.91.155.184"   # Use either node — NodePort is available on both
 
-CORE_PORT="32365"
-REPORTING_PORT="30595"
-MOBILE_PORT="30203"
+CORE_PORT="31000"
+REPORTING_PORT="31001"
+MOBILE_PORT="31002"
 
 CORE="http://${NODE_IP}:${CORE_PORT}"
 REPORTING="http://${NODE_IP}:${REPORTING_PORT}"
