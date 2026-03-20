@@ -191,12 +191,9 @@ if [[ -z "${NODE_IP}" ]]; then
   NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}' 2>/dev/null)
 fi
 
-CORE_PORT=$(kubectl get svc -n ${NAMESPACE} \
-  -o jsonpath='{.items[?(@.metadata.name=="platform-core")].spec.ports[0].nodePort}' 2>/dev/null || echo "")
-REPORTING_PORT=$(kubectl get svc -n ${NAMESPACE} \
-  -o jsonpath='{.items[?(@.metadata.name=="platform-reporting")].spec.ports[0].nodePort}' 2>/dev/null || echo "")
-MOBILE_PORT=$(kubectl get svc -n ${NAMESPACE} \
-  -o jsonpath='{.items[?(@.metadata.name=="platform-mobile")].spec.ports[0].nodePort}' 2>/dev/null || echo "")
+CORE_PORT="31000"
+REPORTING_PORT="31001"
+MOBILE_PORT="31002"
 
 echo ""
 echo "  Node IP      : ${NODE_IP}"

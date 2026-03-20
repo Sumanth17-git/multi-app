@@ -21,10 +21,10 @@ import { Rate, Trend } from 'k6/metrics';
 // -----------------------------------------------------------------------------
 // Target configuration — update NODE_IP and ports if they change
 // -----------------------------------------------------------------------------
-const NODE_IP       = '52.91.155.184';
-const CORE_PORT     = '31770';
-const REPORTING_PORT = '31353';
-const MOBILE_PORT   = '31013';
+const NODE_IP        = '52.91.155.184';
+const CORE_PORT      = '31000';
+const REPORTING_PORT = '31001';
+const MOBILE_PORT    = '31002';
 
 const CORE      = `http://${NODE_IP}:${CORE_PORT}`;
 const REPORTING = `http://${NODE_IP}:${REPORTING_PORT}`;
