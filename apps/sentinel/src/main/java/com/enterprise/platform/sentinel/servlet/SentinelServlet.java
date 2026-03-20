@@ -1,5 +1,9 @@
 package com.enterprise.platform.sentinel.servlet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import io.prometheus.client.Counter;
+import io.prometheus.client.Histogram;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -33,6 +37,21 @@ public class SentinelServlet extends HttpServlet {
     private static final String SERVICE = "sentinel";
     private static final String VERSION = "1.0.0";
 
+    private static final Logger log = LoggerFactory.getLogger(SentinelServlet.class);
+
+    private static final Counter REQUEST_COUNT = Counter.build()
+        .name("http_requests_total")
+        .help("Total HTTP requests handled")
+        .labelNames("service", "profile", "method", "path", "status")
+        .register();
+
+    private static final Histogram REQUEST_DURATION = Histogram.build()
+        .name("http_request_duration_seconds")
+        .help("HTTP request duration in seconds")
+        .labelNames("service", "profile", "method", "path")
+        .buckets(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5)
+        .register();
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -43,54 +62,66 @@ public class SentinelServlet extends HttpServlet {
         String path    = req.getServletPath();
         String profile = env("PROFILE", "unknown");
 
-        switch (path) {
+        log.info("incoming request");
+        long startNs = System.nanoTime();
+        try {
+            switch (path) {
 
-            // ----------------------------------------------------------------
-            case "/health":
-                resp.setStatus(200);
-                write(resp, "{"
-                    + "\"status\":\"UP\","
-                    + "\"service\":\"" + SERVICE + "\","
-                    + "\"profile\":\"" + profile + "\","
-                    + "\"ts\":\"" + Instant.now() + "\""
-                    + "}");
-                break;
+                // ----------------------------------------------------------------
+                case "/health":
+                    resp.setStatus(200);
+                    write(resp, "{"
+                        + "\"status\":\"UP\","
+                        + "\"service\":\"" + SERVICE + "\","
+                        + "\"profile\":\"" + profile + "\","
+                        + "\"ts\":\"" + Instant.now() + "\""
+                        + "}");
+                    break;
 
-            // ----------------------------------------------------------------
-            case "/info":
-                resp.setStatus(200);
-                write(resp, "{"
-                    + "\"service\":\"" + SERVICE + "\","
-                    + "\"description\":\"Identity and Auth — token validation gateway\","
-                    + "\"version\":\"" + VERSION + "\","
-                    + "\"profile\":\"" + profile + "\","
-                    + "\"contextPath\":\"" + req.getContextPath() + "\","
-                    + "\"port\":" + req.getServerPort() + ","
-                    + "\"ts\":\"" + Instant.now() + "\""
-                    + "}");
-                break;
+                // ----------------------------------------------------------------
+                case "/info":
+                    resp.setStatus(200);
+                    write(resp, "{"
+                        + "\"service\":\"" + SERVICE + "\","
+                        + "\"description\":\"Identity and Auth — token validation gateway\","
+                        + "\"version\":\"" + VERSION + "\","
+                        + "\"profile\":\"" + profile + "\","
+                        + "\"contextPath\":\"" + req.getContextPath() + "\","
+                        + "\"port\":" + req.getServerPort() + ","
+                        + "\"ts\":\"" + Instant.now() + "\""
+                        + "}");
+                    break;
 
-            // ----------------------------------------------------------------
-            // Called by nexus before every downstream WAR call
-            // In production: validate JWT from Authorization header
-            // ----------------------------------------------------------------
-            case "/validate":
-                String authHeader = req.getHeader("Authorization");
-                resp.setStatus(200);
-                write(resp, "{"
-                    + "\"valid\":true,"
-                    + "\"service\":\"" + SERVICE + "\","
-                    + "\"profile\":\"" + profile + "\","
-                    + "\"user\":\"system-user\","
-                    + "\"roles\":[\"READ\",\"WRITE\"],"
-                    + "\"tokenReceived\":" + (authHeader != null) + ","
-                    + "\"ts\":\"" + Instant.now() + "\""
-                    + "}");
-                break;
+                // ----------------------------------------------------------------
+                // Called by nexus before every downstream WAR call
+                // In production: validate JWT from Authorization header
+                // ----------------------------------------------------------------
+                case "/validate":
+                    String authHeader = req.getHeader("Authorization");
+                    resp.setStatus(200);
+                    write(resp, "{"
+                        + "\"valid\":true,"
+                        + "\"service\":\"" + SERVICE + "\","
+                        + "\"profile\":\"" + profile + "\","
+                        + "\"user\":\"system-user\","
+                        + "\"roles\":[\"READ\",\"WRITE\"],"
+                        + "\"tokenReceived\":" + (authHeader != null) + ","
+                        + "\"ts\":\"" + Instant.now() + "\""
+                        + "}");
+                    break;
 
-            default:
-                resp.setStatus(404);
-                write(resp, "{\"error\":\"endpoint not found\",\"path\":\"" + path + "\"}");
+                default:
+                    resp.setStatus(404);
+                    write(resp, "{\"error\":\"endpoint not found\",\"path\":\"" + path + "\"}");
+            }
+        } finally {
+            double elapsed = (System.nanoTime() - startNs) / 1e9;
+            REQUEST_COUNT.labels(SERVICE, profile, req.getMethod(), req.getServletPath(),
+                String.valueOf(resp.getStatus())).inc();
+            REQUEST_DURATION.labels(SERVICE, profile, req.getMethod(), req.getServletPath())
+                .observe(elapsed);
+            log.info("handled path={} status={} elapsed_ms={}", req.getServletPath(),
+                resp.getStatus(), Math.round(elapsed * 1000));
         }
     }
 

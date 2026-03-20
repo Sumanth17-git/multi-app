@@ -1,5 +1,9 @@
 package com.enterprise.platform.nexus.servlet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import io.prometheus.client.Counter;
+import io.prometheus.client.Histogram;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -57,6 +61,21 @@ public class NexusServlet extends HttpServlet {
     private static final String SERVICE = "nexus";
     private static final String VERSION = "1.0.0";
 
+    private static final Logger log = LoggerFactory.getLogger(NexusServlet.class);
+
+    private static final Counter REQUEST_COUNT = Counter.build()
+        .name("http_requests_total")
+        .help("Total HTTP requests handled")
+        .labelNames("service", "profile", "method", "path", "status")
+        .register();
+
+    private static final Histogram REQUEST_DURATION = Histogram.build()
+        .name("http_request_duration_seconds")
+        .help("HTTP request duration in seconds")
+        .labelNames("service", "profile", "method", "path")
+        .buckets(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5)
+        .register();
+
     // Shared client — thread-safe, reuse across all requests
     private HttpClient httpClient;
 
@@ -78,15 +97,27 @@ public class NexusServlet extends HttpServlet {
         String path    = req.getServletPath();
         String profile = env("PROFILE", "unknown");
 
-        switch (path) {
-            case "/health":       handleHealth(resp, profile);              break;
-            case "/info":         handleInfo(req, resp, profile);           break;
-            case "/route":        handleRoute(req, resp, profile);          break;
-            case "/cross-profile":handleCrossProfile(req, resp, profile);   break;
-            case "/full-chain":   handleFullChain(resp, profile);           break;
-            default:
-                resp.setStatus(404);
-                write(resp, "{\"error\":\"endpoint not found\",\"path\":\"" + path + "\"}");
+        log.info("incoming request");
+        long startNs = System.nanoTime();
+        try {
+            switch (path) {
+                case "/health":       handleHealth(resp, profile);              break;
+                case "/info":         handleInfo(req, resp, profile);           break;
+                case "/route":        handleRoute(req, resp, profile);          break;
+                case "/cross-profile":handleCrossProfile(req, resp, profile);   break;
+                case "/full-chain":   handleFullChain(resp, profile);           break;
+                default:
+                    resp.setStatus(404);
+                    write(resp, "{\"error\":\"endpoint not found\",\"path\":\"" + path + "\"}");
+            }
+        } finally {
+            double elapsed = (System.nanoTime() - startNs) / 1e9;
+            REQUEST_COUNT.labels(SERVICE, profile, req.getMethod(), req.getServletPath(),
+                String.valueOf(resp.getStatus())).inc();
+            REQUEST_DURATION.labels(SERVICE, profile, req.getMethod(), req.getServletPath())
+                .observe(elapsed);
+            log.info("handled path={} status={} elapsed_ms={}", req.getServletPath(),
+                resp.getStatus(), Math.round(elapsed * 1000));
         }
     }
 
