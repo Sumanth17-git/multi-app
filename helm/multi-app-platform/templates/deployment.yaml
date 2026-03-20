@@ -64,11 +64,8 @@ spec:
               value: {{ printf "platform-%s" $profile | quote }}
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: {{ $.Values.otel.endpoint | quote }}
-            - name: OTEL_EXPORTER_OTLP_HEADERS
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "multi-app-platform.fullname" $ }}-otel-secret
-                  key: otlp-headers
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: "grpc"
             - name: OTEL_PROPAGATORS
               value: {{ $.Values.otel.propagators | quote }}
             - name: OTEL_TRACES_SAMPLER

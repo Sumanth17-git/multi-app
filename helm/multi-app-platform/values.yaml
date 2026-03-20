@@ -135,8 +135,9 @@ terminationGracePeriodSeconds: 60
 # -----------------------------------------------------------------------------
 otel:
   enabled: true
-  licenseKey: "eu01xxb2c7b50ff6ebdf34097bfd0d1cFFFFNRAL"  # New Relic EU — testing only
-  endpoint: "https://otlp.eu01.nr-data.net:4318"         # New Relic EU HTTP/OTLP
+  # Pods send to OTel Collector DaemonSet via ClusterIP service (no NR credentials in pods)
+  # Collector handles auth, batching, retry, K8s attribute enrichment → New Relic EU
+  endpoint: "http://otel-collector-opentelemetry-collector.platform.svc.cluster.local:4317"
   sampler: "parentbased_traceidratio"                     # respect upstream sampling decision
   samplerArg: "0.10"                                      # sample 10% of new traces
   propagators: "tracecontext,baggage"                     # W3C traceparent + baggage
