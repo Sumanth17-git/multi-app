@@ -22,7 +22,7 @@ profiles:
     enabled: true
     image:
       repository: platform
-      tag: core-1.1.0
+      tag: core
     replicas: 2
     ingress:
       host: core.platform.example.com
@@ -48,7 +48,7 @@ profiles:
     enabled: true
     image:
       repository: platform
-      tag: reporting-1.1.0
+      tag: reporting
     replicas: 1
     ingress:
       host: reporting.platform.example.com
@@ -73,7 +73,7 @@ profiles:
     enabled: true
     image:
       repository: platform
-      tag: mobile-1.1.0
+      tag: mobile
     replicas: 2
     ingress:
       host: mobile.platform.example.com
