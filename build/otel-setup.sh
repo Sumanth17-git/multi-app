@@ -60,9 +60,9 @@ echo ""
 ./build/build-and-push.sh
 echo ""
 echo "      Images pushed:"
-echo "        ${DOCKER_USER}/platform:core"
-echo "        ${DOCKER_USER}/platform:reporting"
-echo "        ${DOCKER_USER}/platform:mobile"
+echo "        ${DOCKER_USER}/multi-app-platform:core"
+echo "        ${DOCKER_USER}/multi-app-platform:reporting"
+echo "        ${DOCKER_USER}/multi-app-platform:mobile"
 
 # =============================================================================
 # STEP 3 — Helm uninstall existing release
