@@ -124,3 +124,16 @@ affinity: {}
 
 # Graceful shutdown — gives Tomcat time to drain requests
 terminationGracePeriodSeconds: 60
+
+# -----------------------------------------------------------------------------
+# OpenTelemetry auto-instrumentation (Java agent)
+# licenseKey is stored as a Kubernetes Secret — never hardcode here
+# Set via: helm install ... --set otel.licenseKey=<your-key>
+# -----------------------------------------------------------------------------
+otel:
+  enabled: true
+  licenseKey: ""                                          # set via --set otel.licenseKey=<key>
+  endpoint: "https://otlp.eu01.nr-data.net:4318"         # New Relic EU HTTP/OTLP
+  sampler: "parentbased_traceidratio"                     # respect upstream sampling decision
+  samplerArg: "0.10"                                      # sample 10% of new traces
+  propagators: "tracecontext,baggage"                     # W3C traceparent + baggage

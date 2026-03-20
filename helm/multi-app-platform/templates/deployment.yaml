@@ -57,6 +57,31 @@ spec:
               value: {{ printf "http://%s-reporting.%s.svc.cluster.local" (include "multi-app-platform.fullname" $) $.Release.Namespace | quote }}
             - name: MOBILE_SERVICE_URL
               value: {{ printf "http://%s-mobile.%s.svc.cluster.local" (include "multi-app-platform.fullname" $) $.Release.Namespace | quote }}
+            {{- if $.Values.otel.enabled }}
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:/opt/otel/opentelemetry-javaagent.jar"
+            - name: OTEL_SERVICE_NAME
+              value: {{ printf "platform-%s" $profile | quote }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ $.Values.otel.endpoint | quote }}
+            - name: OTEL_EXPORTER_OTLP_HEADERS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "multi-app-platform.fullname" $ }}-otel-secret
+                  key: otlp-headers
+            - name: OTEL_PROPAGATORS
+              value: {{ $.Values.otel.propagators | quote }}
+            - name: OTEL_TRACES_SAMPLER
+              value: {{ $.Values.otel.sampler | quote }}
+            - name: OTEL_TRACES_SAMPLER_ARG
+              value: {{ $.Values.otel.samplerArg | quote }}
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: {{ printf "profile=%s,team=platform" $profile | quote }}
+            - name: OTEL_LOGS_EXPORTER
+              value: "none"
+            - name: OTEL_METRICS_EXPORTER
+              value: "none"
+            {{- end }}
           livenessProbe:
             httpGet:
               path: /healthz

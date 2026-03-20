@@ -92,6 +92,12 @@ RUN mkdir -p \
     "${CATALINA_HOME}/webapps-carehub"   \
     "${CATALINA_HOME}/webapps-scheduler"
 
+# OpenTelemetry Java Agent — auto-instruments Tomcat, HttpClient, SLF4J MDC
+ARG OTEL_AGENT_VERSION=2.3.0
+RUN mkdir -p /opt/otel \
+    && wget -qO /opt/otel/opentelemetry-javaagent.jar \
+       "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${OTEL_AGENT_VERSION}/opentelemetry-javaagent.jar"
+
 # Shared NGINX main config
 COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
 
