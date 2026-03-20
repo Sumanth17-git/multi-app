@@ -1,5 +1,6 @@
-#!/usr/bin/execlineb -P
+#!/bin/bash
 # S6 run script for Tomcat
-# Uses catalina.sh run (foreground) so S6 can supervise the JVM process
+# with-contenv injects Kubernetes/Docker env vars (PROFILE, SERVICE_URLs, etc.)
+# into the Tomcat JVM process so System.getenv() works correctly
 
-/opt/tomcat/bin/catalina.sh run
+exec /usr/bin/with-contenv /opt/tomcat/bin/catalina.sh run
