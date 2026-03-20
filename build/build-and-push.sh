@@ -10,7 +10,7 @@
 set -e
 
 DOCKER_USER="sumanth17121988"
-REPO="${DOCKER_USER}/platform"
+REPO="${DOCKER_USER}/multi-app-platform"
 
 echo "============================================="
 echo " Multi-App Platform — Build & Push"

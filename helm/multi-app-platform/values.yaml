@@ -21,7 +21,7 @@ profiles:
   core:
     enabled: true
     image:
-      repository: platform
+      repository: multi-app-platform
       tag: core
     nodePort: 31000
     replicas: 1
@@ -48,7 +48,7 @@ profiles:
   reporting:
     enabled: true
     image:
-      repository: platform
+      repository: multi-app-platform
       tag: reporting
     nodePort: 31001
     replicas: 1
@@ -74,7 +74,7 @@ profiles:
   mobile:
     enabled: true
     image:
-      repository: platform
+      repository: multi-app-platform
       tag: mobile
     nodePort: 31002
     replicas: 1
