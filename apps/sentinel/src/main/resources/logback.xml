@@ -1,26 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <!--
-        Enterprise MDC log pattern:
-        timestamp  level  [trace_id]  [span_id]  [profile]  [service]  [method path]  logger — message
-    -->
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ} %-5level [%X{trace_id:-no-trace}] [%X{span_id:--}] [%X{profile:-?}] [%X{service:-?}] [%X{method:--} %X{path:--}] %logger{30} — %msg%n</pattern>
-        </encoder>
-    </appender>
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+      <providers>
+        <timestamp/>
+        <logLevel/>
+        <threadName/>
+        <loggerName/>
+        <message/>
+        <!-- Captures: trace_id, span_id, trace_flags (OTel agent)
+                       profile, service, method, path (MDCFilter) -->
+        <mdc/>
+        <jsonFields>
+          <field name="war" value="sentinel"/>
+        </jsonFields>
+      </providers>
+    </encoder>
+  </appender>
 
-    <!-- Suppress noisy Tomcat startup scan warnings -->
-    <logger name="org.apache.jasper.servlet.TldScanner" level="ERROR"/>
-    <logger name="org.apache.catalina"                  level="WARN"/>
-    <logger name="org.apache.coyote"                    level="WARN"/>
+  <!-- Suppress noisy Tomcat startup scan warnings -->
+  <logger name="org.apache.jasper.servlet.TldScanner" level="ERROR"/>
+  <logger name="org.apache.catalina"                  level="WARN"/>
+  <logger name="org.apache.coyote"                    level="WARN"/>
 
-    <!-- Application loggers -->
-    <logger name="com.enterprise.platform" level="INFO"/>
+  <!-- Application loggers -->
+  <logger name="com.enterprise.platform" level="INFO"/>
 
-    <root level="INFO">
-        <appender-ref ref="STDOUT"/>
-    </root>
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+  </root>
 
 </configuration>
