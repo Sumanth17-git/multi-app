@@ -1,11 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+
+    <!--
+        Enterprise MDC log pattern:
+        timestamp  level  [traceId]  [spanId]  [parentSpanId]  [profile]  [service]  [method path]  logger — message
+    -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ} %-5level [%X{requestId:-—}] [%X{profile:-—}] [%X{service:-—}] [%X{method:-—} %X{path:-—}] %logger{30} — %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ} %-5level [%X{traceId:-no-trace}] [%X{spanId:--}] [%X{parentSpanId:-root}] [%X{profile:-?}] [%X{service:-?}] [%X{method:--} %X{path:--}] %logger{30} — %msg%n</pattern>
         </encoder>
     </appender>
+
+    <!-- Suppress noisy Tomcat startup scan warnings -->
+    <logger name="org.apache.jasper.servlet.TldScanner" level="ERROR"/>
+    <logger name="org.apache.catalina"                  level="WARN"/>
+    <logger name="org.apache.coyote"                    level="WARN"/>
+
+    <!-- Application loggers -->
+    <logger name="com.enterprise.platform" level="INFO"/>
+
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
+
 </configuration>

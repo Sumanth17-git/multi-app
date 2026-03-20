@@ -2,6 +2,7 @@ package com.enterprise.platform.nexus.servlet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Histogram;
 import javax.servlet.ServletException;
@@ -18,6 +19,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * NexusServlet — API Gateway. Orchestrates intra-profile and inter-profile chains.
@@ -328,12 +330,21 @@ public class NexusServlet extends HttpServlet {
     /** Synchronous HTTP GET — blocks until response or error */
     private String callSync(String url) {
         try {
-            HttpRequest req = HttpRequest.newBuilder()
+            // Build downstream traceparent: same traceId, new spanId for this hop
+            String traceId   = MDC.get("traceId");
+            String childSpan = generateHex(8);
+            String downstreamTraceparent = (traceId != null)
+                ? "00-" + traceId + "-" + childSpan + "-01"
+                : null;
+
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .timeout(Duration.ofSeconds(10))
-                    .header("Accept", "application/json")
-                    .GET()
-                    .build();
+                    .header("Accept", "application/json");
+            if (downstreamTraceparent != null) {
+                builder.header("traceparent", downstreamTraceparent);
+            }
+            HttpRequest req = builder.GET().build();
             HttpResponse<String> res =
                     httpClient.send(req, HttpResponse.BodyHandlers.ofString());
             return (res.statusCode() < 300) ? res.body()
@@ -349,12 +360,20 @@ public class NexusServlet extends HttpServlet {
      * Used for parallel calls in /full-chain.
      */
     private CompletableFuture<String> callAsync(String url) {
-        HttpRequest req = HttpRequest.newBuilder()
+        String traceId   = MDC.get("traceId");
+        String childSpan = generateHex(8);
+        String downstreamTraceparent = (traceId != null)
+            ? "00-" + traceId + "-" + childSpan + "-01"
+            : null;
+
+        HttpRequest.Builder reqBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .timeout(Duration.ofSeconds(10))
-                .header("Accept", "application/json")
-                .GET()
-                .build();
+                .header("Accept", "application/json");
+        if (downstreamTraceparent != null) {
+            reqBuilder.header("traceparent", downstreamTraceparent);
+        }
+        HttpRequest req = reqBuilder.GET().build();
         return httpClient
                 .sendAsync(req, HttpResponse.BodyHandlers.ofString())
                 .thenApply(res -> (res.statusCode() < 300) ? res.body()
@@ -368,6 +387,17 @@ public class NexusServlet extends HttpServlet {
     /** Already-completed future — used when a URL env var is not set */
     private CompletableFuture<String> done(String json) {
         return CompletableFuture.completedFuture(json);
+    }
+
+    /** Generate n random bytes as lowercase hex string */
+    private static String generateHex(int bytes) {
+        byte[] buf = new byte[bytes];
+        ThreadLocalRandom.current().nextBytes(buf);
+        StringBuilder sb = new StringBuilder(bytes * 2);
+        for (byte b : buf) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
     }
 
     private String env(String key, String def) {
