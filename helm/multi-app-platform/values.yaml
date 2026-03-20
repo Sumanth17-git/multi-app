@@ -8,9 +8,9 @@
 # For ECR: imageRegistry: 123456789012.dkr.ecr.us-east-1.amazonaws.com
 # -----------------------------------------------------------------------------
 global:
-  imageRegistry: ""          # set to ECR registry URL in prod
-  imagePullPolicy: IfNotPresent
-  imagePullSecrets: []       # - name: ecr-pull-secret
+  imageRegistry: "sumanth17121988"
+  imagePullPolicy: Always
+  imagePullSecrets: []
 
 # -----------------------------------------------------------------------------
 # Profile deployments
