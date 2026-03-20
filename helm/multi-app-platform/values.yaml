@@ -132,7 +132,7 @@ terminationGracePeriodSeconds: 60
 # -----------------------------------------------------------------------------
 otel:
   enabled: true
-  licenseKey: ""                                          # set via --set otel.licenseKey=<key>
+  licenseKey: "eu01xxb2c7b50ff6ebdf34097bfd0d1cFFFFNRAL"  # New Relic EU — testing only
   endpoint: "https://otlp.eu01.nr-data.net:4318"         # New Relic EU HTTP/OTLP
   sampler: "parentbased_traceidratio"                     # respect upstream sampling decision
   samplerArg: "0.10"                                      # sample 10% of new traces
