@@ -3,11 +3,11 @@
 
     <!--
         Enterprise MDC log pattern:
-        timestamp  level  [traceId]  [spanId]  [parentSpanId]  [profile]  [service]  [method path]  logger — message
+        timestamp  level  [trace_id]  [span_id]  [profile]  [service]  [method path]  logger — message
     -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ} %-5level [%X{traceId:-no-trace}] [%X{spanId:--}] [%X{parentSpanId:-root}] [%X{profile:-?}] [%X{service:-?}] [%X{method:--} %X{path:--}] %logger{30} — %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ} %-5level [%X{trace_id:-no-trace}] [%X{span_id:--}] [%X{profile:-?}] [%X{service:-?}] [%X{method:--} %X{path:--}] %logger{30} — %msg%n</pattern>
         </encoder>
     </appender>
 
