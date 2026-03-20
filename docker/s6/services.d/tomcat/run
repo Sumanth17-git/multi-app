@@ -1,0 +1,5 @@
+#!/usr/bin/execlineb -P
+# S6 run script for Tomcat
+# Uses catalina.sh run (foreground) so S6 can supervise the JVM process
+
+/opt/tomcat/bin/catalina.sh run

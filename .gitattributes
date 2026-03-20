@@ -1,0 +1,22 @@
+# Force LF line endings on checkout for all files
+* text=auto eol=lf
+
+# Shell scripts — always LF
+*.sh        text eol=lf
+docker/s6/services.d/**/run    text eol=lf
+docker/s6/services.d/**/finish text eol=lf
+
+# Java / XML / YAML / configs — LF
+*.java      text eol=lf
+*.xml       text eol=lf
+*.yaml      text eol=lf
+*.yml       text eol=lf
+*.conf      text eol=lf
+*.tpl       text eol=lf
+*.md        text eol=lf
+Dockerfile  text eol=lf
+
+# Binary files — no line ending conversion
+*.war       binary
+*.jar       binary
+*.class     binary

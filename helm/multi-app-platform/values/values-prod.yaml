@@ -1,0 +1,50 @@
+# values-prod.yaml — EKS production overrides
+global:
+  imageRegistry: "123456789012.dkr.ecr.us-east-1.amazonaws.com"
+  imagePullPolicy: Always
+
+profiles:
+  core:
+    replicas: 3
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "2000m"
+    ingress:
+      host: core.platform.yourdomain.com
+
+  reporting:
+    replicas: 2
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "2000m"
+    ingress:
+      host: reporting.platform.yourdomain.com
+
+  mobile:
+    replicas: 3
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "2000m"
+    ingress:
+      host: mobile.platform.yourdomain.com
+
+ingress:
+  enabled: true
+  className: "alb"
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'

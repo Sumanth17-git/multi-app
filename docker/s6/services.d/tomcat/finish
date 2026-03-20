@@ -1,0 +1,7 @@
+#!/usr/bin/execlineb -S0
+# S6 finish script for Tomcat
+# Called when Tomcat JVM exits
+
+foreground { echo "[s6] tomcat exited with code ${1}" }
+ifelse { s6-test ${1} -eq 0 } { exit 0 }
+echo "[s6] tomcat crashed — S6 will restart it"

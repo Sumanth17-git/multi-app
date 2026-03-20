@@ -1,0 +1,126 @@
+# =============================================================================
+# values.yaml — default values for multi-app-platform Helm chart
+# Override per environment using values/values-dev.yaml, values-prod.yaml etc.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Global image settings
+# For ECR: imageRegistry: 123456789012.dkr.ecr.us-east-1.amazonaws.com
+# -----------------------------------------------------------------------------
+global:
+  imageRegistry: ""          # set to ECR registry URL in prod
+  imagePullPolicy: IfNotPresent
+  imagePullSecrets: []       # - name: ecr-pull-secret
+
+# -----------------------------------------------------------------------------
+# Profile deployments
+# Each profile maps to one Docker image, one Deployment, one Service
+# -----------------------------------------------------------------------------
+profiles:
+
+  core:
+    enabled: true
+    image:
+      repository: platform
+      tag: core
+    replicas: 2
+    ingress:
+      host: core.platform.example.com
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1.5Gi"
+        cpu: "1000m"
+    # Per-profile JVM tuning (overrides image default CATALINA_OPTS)
+    jvmOpts: "-Xms256m -Xmx1g -XX:+UseG1GC"
+    livenessProbe:
+      initialDelaySeconds: 45
+      periodSeconds: 15
+      failureThreshold: 3
+    readinessProbe:
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      failureThreshold: 3
+
+  reporting:
+    enabled: true
+    image:
+      repository: platform
+      tag: reporting
+    replicas: 1
+    ingress:
+      host: reporting.platform.example.com
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1.5Gi"
+        cpu: "1000m"
+    jvmOpts: "-Xms256m -Xmx1g -XX:+UseG1GC"
+    livenessProbe:
+      initialDelaySeconds: 45
+      periodSeconds: 15
+      failureThreshold: 3
+    readinessProbe:
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      failureThreshold: 3
+
+  mobile:
+    enabled: true
+    image:
+      repository: platform
+      tag: mobile
+    replicas: 2
+    ingress:
+      host: mobile.platform.example.com
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1.5Gi"
+        cpu: "1000m"
+    jvmOpts: "-Xms256m -Xmx1g -XX:+UseG1GC"
+    livenessProbe:
+      initialDelaySeconds: 45
+      periodSeconds: 15
+      failureThreshold: 3
+    readinessProbe:
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      failureThreshold: 3
+
+# -----------------------------------------------------------------------------
+# Ingress settings
+# -----------------------------------------------------------------------------
+ingress:
+  enabled: true
+  className: "nginx"       # use "alb" for AWS ALB Ingress Controller on EKS
+  annotations: {}
+    # For AWS ALB:
+    # kubernetes.io/ingress.class: alb
+    # alb.ingress.kubernetes.io/scheme: internet-facing
+    # alb.ingress.kubernetes.io/target-type: ip
+
+# -----------------------------------------------------------------------------
+# Service settings (applies to all profiles)
+# -----------------------------------------------------------------------------
+service:
+  type: ClusterIP
+  port: 80
+
+# -----------------------------------------------------------------------------
+# Pod settings (applies to all profiles)
+# -----------------------------------------------------------------------------
+podAnnotations: {}
+podSecurityContext: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Graceful shutdown — gives Tomcat time to drain requests
+terminationGracePeriodSeconds: 60

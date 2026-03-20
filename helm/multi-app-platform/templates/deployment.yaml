@@ -1,0 +1,95 @@
+# One Deployment per enabled profile
+{{- range $profile, $config := .Values.profiles }}
+{{- if $config.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "multi-app-platform.fullname" $ }}-{{ $profile }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "multi-app-platform.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $profile }}
+spec:
+  replicas: {{ $config.replicas }}
+  selector:
+    matchLabels:
+      {{- include "multi-app-platform.selectorLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: {{ $profile }}
+  template:
+    metadata:
+      labels:
+        {{- include "multi-app-platform.selectorLabels" $ | nindent 8 }}
+        app.kubernetes.io/component: {{ $profile }}
+      annotations:
+        checksum/values: {{ toJson $config | sha256sum }}
+        {{- with $.Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with $.Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ $.Values.terminationGracePeriodSeconds }}
+      {{- with $.Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: platform
+          image: {{ include "multi-app-platform.image" (dict "global" $.Values.global "image" $config.image) }}
+          imagePullPolicy: {{ $.Values.global.imagePullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: PROFILE
+              value: {{ $profile | quote }}
+            - name: CATALINA_OPTS
+              value: {{ $config.jvmOpts | quote }}
+            - name: TZ
+              value: "UTC"
+            - name: CORE_SERVICE_URL
+              value: {{ printf "http://%s-core.%s.svc.cluster.local" (include "multi-app-platform.fullname" $) $.Release.Namespace | quote }}
+            - name: REPORTING_SERVICE_URL
+              value: {{ printf "http://%s-reporting.%s.svc.cluster.local" (include "multi-app-platform.fullname" $) $.Release.Namespace | quote }}
+            - name: MOBILE_SERVICE_URL
+              value: {{ printf "http://%s-mobile.%s.svc.cluster.local" (include "multi-app-platform.fullname" $) $.Release.Namespace | quote }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: {{ $config.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ $config.livenessProbe.periodSeconds }}
+            failureThreshold: {{ $config.livenessProbe.failureThreshold }}
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: {{ $config.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ $config.readinessProbe.periodSeconds }}
+            failureThreshold: {{ $config.readinessProbe.failureThreshold }}
+            timeoutSeconds: 5
+          resources:
+            {{- toYaml $config.resources | nindent 12 }}
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 5"]
+      {{- with $.Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,36 @@
+{{- if .Values.ingress.enabled }}
+# One Ingress with one rule per enabled profile (hostname-based routing)
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "multi-app-platform.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "multi-app-platform.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  rules:
+  {{- range $profile, $config := .Values.profiles }}
+  {{- if $config.enabled }}
+    # {{ $profile }} profile → routes all traffic to its own service
+    # NGINX inside the pod then routes to the correct WAR by path
+    - host: {{ $config.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "multi-app-platform.fullname" $ }}-{{ $profile }}
+                port:
+                  name: http
+  {{- end }}
+  {{- end }}
+{{- end }}

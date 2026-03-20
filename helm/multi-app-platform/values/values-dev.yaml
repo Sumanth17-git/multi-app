@@ -1,0 +1,15 @@
+# values-dev.yaml — local / dev cluster overrides
+global:
+  imageRegistry: ""          # local images, no registry prefix
+  imagePullPolicy: Never     # use locally built images in kind/minikube
+
+profiles:
+  core:
+    replicas: 1              # save resources in dev
+  reporting:
+    replicas: 1
+  mobile:
+    replicas: 1
+
+ingress:
+  enabled: false             # use kubectl port-forward in dev

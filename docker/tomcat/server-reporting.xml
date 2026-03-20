@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- server-reporting.xml — baked into platform:reporting image -->
+<!-- Active services: nexus(7500) + sentinel(7507) + scheduler(7530) -->
+<!-- carehub intentionally excluded from this profile -->
+<Server port="8005" shutdown="SHUTDOWN">
+
+    <Listener className="org.apache.catalina.startup.VersionLoggerListener" />
+    <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" />
+    <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
+    <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
+    <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+
+    <GlobalNamingResources>
+        <Resource name="UserDatabase" auth="Container"
+                  type="org.apache.catalina.UserDatabase"
+                  description="User database"
+                  factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
+                  pathname="conf/tomcat-users.xml" />
+    </GlobalNamingResources>
+
+    <!-- nexus — API Gateway -->
+    <Service name="nexus">
+        <Connector port="7500" protocol="HTTP/1.1"
+                   connectionTimeout="20000" maxThreads="150"
+                   minSpareThreads="10" acceptCount="100"
+                   compression="on" compressionMinSize="2048"
+                   redirectPort="8443" URIEncoding="UTF-8" />
+        <Engine name="nexus" defaultHost="localhost">
+            <Realm className="org.apache.catalina.realm.LockOutRealm">
+                <Realm className="org.apache.catalina.realm.UserDatabaseRealm" resourceName="UserDatabase" />
+            </Realm>
+            <Host name="localhost" appBase="webapps-nexus" unpackWARs="true" autoDeploy="false">
+                <Context path="/nexus" docBase="ROOT" reloadable="false" />
+                <Valve className="org.apache.catalina.valves.AccessLogValve"
+                       directory="logs" prefix="nexus_access" suffix=".log"
+                       pattern="%h %l %u %t &quot;%r&quot; %s %b %D" />
+            </Host>
+        </Engine>
+    </Service>
+
+    <!-- sentinel — Identity/Auth -->
+    <Service name="sentinel">
+        <Connector port="7507" protocol="HTTP/1.1"
+                   connectionTimeout="20000" maxThreads="150"
+                   minSpareThreads="10" acceptCount="100"
+                   compression="on" compressionMinSize="2048"
+                   redirectPort="8443" URIEncoding="UTF-8" />
+        <Engine name="sentinel" defaultHost="localhost">
+            <Realm className="org.apache.catalina.realm.LockOutRealm">
+                <Realm className="org.apache.catalina.realm.UserDatabaseRealm" resourceName="UserDatabase" />
+            </Realm>
+            <Host name="localhost" appBase="webapps-sentinel" unpackWARs="true" autoDeploy="false">
+                <Context path="/sentinel" docBase="ROOT" reloadable="false" />
+                <Valve className="org.apache.catalina.valves.AccessLogValve"
+                       directory="logs" prefix="sentinel_access" suffix=".log"
+                       pattern="%h %l %u %t &quot;%r&quot; %s %b %D" />
+            </Host>
+        </Engine>
+    </Service>
+
+    <!-- scheduler — Appointment Scheduler -->
+    <Service name="scheduler">
+        <Connector port="7530" protocol="HTTP/1.1"
+                   connectionTimeout="20000" maxThreads="150"
+                   minSpareThreads="10" acceptCount="100"
+                   compression="on" compressionMinSize="2048"
+                   redirectPort="8443" URIEncoding="UTF-8" />
+        <Engine name="scheduler" defaultHost="localhost">
+            <Realm className="org.apache.catalina.realm.LockOutRealm">
+                <Realm className="org.apache.catalina.realm.UserDatabaseRealm" resourceName="UserDatabase" />
+            </Realm>
+            <Host name="localhost" appBase="webapps-scheduler" unpackWARs="true" autoDeploy="false">
+                <Context path="/scheduler" docBase="ROOT" reloadable="false" />
+                <Valve className="org.apache.catalina.valves.AccessLogValve"
+                       directory="logs" prefix="scheduler_access" suffix=".log"
+                       pattern="%h %l %u %t &quot;%r&quot; %s %b %D" />
+            </Host>
+        </Engine>
+    </Service>
+
+</Server>

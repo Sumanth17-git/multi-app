@@ -1,0 +1,5 @@
+#!/usr/bin/execlineb -P
+# S6 run script for NGINX
+# Runs nginx in foreground (daemon off) so S6 can supervise it
+
+nginx -g "daemon off;"

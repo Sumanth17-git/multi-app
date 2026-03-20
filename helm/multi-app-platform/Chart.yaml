@@ -1,0 +1,13 @@
+apiVersion: v2
+name: multi-app-platform
+description: Multi-WAR platform — core, reporting and mobile profile deployments
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - tomcat
+  - nginx
+  - s6
+  - multi-war
+maintainers:
+  - name: platform-team
