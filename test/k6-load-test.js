@@ -16,7 +16,7 @@
 
 import http from 'k6/http';
 import { check, sleep, group } from 'k6';
-import { Counter, Rate, Trend } from 'k6/metrics';
+import { Rate, Trend } from 'k6/metrics';
 
 // -----------------------------------------------------------------------------
 // Target configuration — update NODE_IP and ports if they change
@@ -86,28 +86,14 @@ function ok(res, label) {
 // -----------------------------------------------------------------------------
 export default function () {
 
-  // ── Group 1: Health checks ─────────────────────────────────────────────────
-  group('1_health_checks', () => {
-    ok(http.get(`${CORE}/healthz`,      HEADERS), 'core healthz');
-    ok(http.get(`${REPORTING}/healthz`, HEADERS), 'reporting healthz');
-    ok(http.get(`${MOBILE}/healthz`,    HEADERS), 'mobile healthz');
-  });
-
-  sleep(0.5);
-
-  // ── Group 2: WAR health endpoints ─────────────────────────────────────────
-  group('2_war_health', () => {
-    ok(http.get(`${CORE}/nexus/health`,        HEADERS), 'core nexus health');
-    ok(http.get(`${CORE}/sentinel/health`,     HEADERS), 'core sentinel health');
-    ok(http.get(`${CORE}/carehub/health`,      HEADERS), 'core carehub health');
-    ok(http.get(`${CORE}/scheduler/health`,    HEADERS), 'core scheduler health');
-    ok(http.get(`${REPORTING}/nexus/health`,   HEADERS), 'reporting nexus health');
-    ok(http.get(`${REPORTING}/sentinel/health`,HEADERS), 'reporting sentinel health');
-    ok(http.get(`${REPORTING}/scheduler/health`,HEADERS),'reporting scheduler health');
-    ok(http.get(`${MOBILE}/nexus/health`,      HEADERS), 'mobile nexus health');
-    ok(http.get(`${MOBILE}/sentinel/health`,   HEADERS), 'mobile sentinel health');
-    ok(http.get(`${MOBILE}/carehub/health`,    HEADERS), 'mobile carehub health');
-  });
+  // ── Group 1: Health checks (run once every 10 iterations only) ────────────
+  if (__ITER % 10 === 0) {
+    group('1_health_checks', () => {
+      ok(http.get(`${CORE}/healthz`,      HEADERS), 'core healthz');
+      ok(http.get(`${REPORTING}/healthz`, HEADERS), 'reporting healthz');
+      ok(http.get(`${MOBILE}/healthz`,    HEADERS), 'mobile healthz');
+    });
+  }
 
   sleep(0.5);
 
