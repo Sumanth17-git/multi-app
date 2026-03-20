@@ -47,6 +47,9 @@ extraEnvs:
 
 config:
   receivers:
+    filelog:
+      include:
+        - /var/log/pods/platform_*/*/*.log
     otlp:
       protocols:
         grpc:
@@ -78,14 +81,6 @@ config:
         - key: k8s.cluster.name
           value: ${env:K8S_CLUSTER_NAME}
           action: upsert
-    # Keep logs ONLY from platform namespace — drop everything else
-    filter/platform-logs-only:
-      logs:
-        include:
-          match_type: strict
-          resource_attributes:
-            - key: k8s.namespace.name
-              value: platform
 
 
   exporters:
@@ -103,7 +98,7 @@ config:
         processors: [memory_limiter, k8sattributes, resource, batch]
         exporters: [otlphttp/newrelic]
       logs:
-        processors: [memory_limiter, k8sattributes, filter/platform-logs-only, resource, batch]
+        processors: [memory_limiter, k8sattributes, resource, batch]
         exporters: [otlphttp/newrelic]
       traces:
         receivers: [otlp]
