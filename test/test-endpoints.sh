@@ -6,7 +6,7 @@
 
 set +e
 
-NODE_IP="52.91.155.184"   # Use either node — NodePort is available on both
+NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}')   # auto-detect node IP
 
 CORE_PORT="31000"
 REPORTING_PORT="31001"
