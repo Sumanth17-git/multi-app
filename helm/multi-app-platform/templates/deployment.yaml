@@ -78,6 +78,8 @@ spec:
               value: "otlp"
             - name: OTEL_METRICS_EXPORTER
               value: "otlp"
+            - name: OTEL_SEMCONV_STABILITY_OPT_IN
+              value: "http/dup"
             {{- end }}
           livenessProbe:
             httpGet:
