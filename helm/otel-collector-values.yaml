@@ -5,8 +5,7 @@ image:
 
 presets:
   logsCollection:
-    enabled: true
-    includeCollectorLogs: false
+    enabled: false          # disabled — app logs exported by OTel Java agent via OTLP
   kubernetesAttributes:
     enabled: true
   kubeletMetrics:
@@ -47,9 +46,6 @@ extraEnvs:
 
 config:
   receivers:
-    filelog:
-      include:
-        - /var/log/pods/platform_*/*/*.log
     otlp:
       protocols:
         grpc:
@@ -81,17 +77,6 @@ config:
         - key: k8s.cluster.name
           value: ${env:K8S_CLUSTER_NAME}
           action: upsert
-    transform/logs:
-      log_statements:
-        - context: log
-          statements:
-            # Promote trace_id/span_id from JSON log attributes → OTLP first-class fields
-            # so New Relic can correlate logs ↔ traces by trace ID
-            - set(trace_id.string, attributes["trace_id"]) where attributes["trace_id"] != nil
-            - set(span_id.string, attributes["span_id"]) where attributes["span_id"] != nil
-            - delete_key(attributes, "trace_id")
-            - delete_key(attributes, "span_id")
-
 
   exporters:
     debug:
@@ -108,7 +93,8 @@ config:
         processors: [memory_limiter, k8sattributes, resource, batch]
         exporters: [otlphttp/newrelic]
       logs:
-        processors: [memory_limiter, k8sattributes, resource, transform/logs, batch]
+        receivers: [otlp]
+        processors: [memory_limiter, k8sattributes, resource, batch]
         exporters: [otlphttp/newrelic]
       traces:
         receivers: [otlp]

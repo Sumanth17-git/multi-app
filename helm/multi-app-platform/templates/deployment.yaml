@@ -75,7 +75,7 @@ spec:
             - name: OTEL_RESOURCE_ATTRIBUTES
               value: {{ printf "profile=%s,team=platform" $profile | quote }}
             - name: OTEL_LOGS_EXPORTER
-              value: "none"
+              value: "otlp"
             - name: OTEL_METRICS_EXPORTER
               value: "otlp"
             {{- end }}
